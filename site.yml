@@ -22,3 +22,19 @@
     - geerlingguy.docker
     - common
     - xray
+
+- name: Validate deployment on servers
+  hosts: all
+  become: true
+  roles:
+    - validation
+
+- name: Validate end-to-end connectivity
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Include connectivity validation tasks
+      include_tasks: roles/validation/tasks/connectivity.yml
+

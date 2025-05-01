@@ -1,0 +1,50 @@
+---
+- name: Pause to allow services to fully start
+  pause:
+    seconds: 10
+  run_once: true
+  delegate_to: localhost
+
+# Check Docker services status
+- name: Verify Docker services are running
+  community.docker.docker_container_info:
+    name: "{% if inventory_hostname in groups['haproxy'] %}{{ haproxy_container_name }}{% else %}{{ xray_container_name }}{% endif %}"
+  register: container_info
+  
+- name: Validate container status
+  assert:
+    that:
+      - container_info.exists
+      - container_info.container.State.Running
+    fail_msg: "Container is not running on {{ inventory_hostname }}"
+    success_msg: "Container is running correctly on {{ inventory_hostname }}"
+
+# HAProxy-specific checks
+- name: Validate HAProxy configuration
+  command: docker exec {{ haproxy_container_name }} haproxy -c -f /usr/local/etc/haproxy/haproxy.cfg
+  register: haproxy_config_check
+  changed_when: false
+  when: inventory_hostname in groups['haproxy']
+  
+- name: Display HAProxy status
+  debug:
+    msg: "HAProxy configuration is valid"
+  when: inventory_hostname in groups['haproxy'] and haproxy_config_check.rc == 0
+
+# Xray-specific checks
+- name: Check certificate validity for Xray servers
+  command: openssl x509 -checkend 86400 -noout -in {{ xray_cert_dir }}/{{ domain_name }}.crt
+  register: cert_check
+  changed_when: false
+  when: inventory_hostname in groups['xray_main'] or inventory_hostname in groups['xray_backup']
+  ignore_errors: true
+  
+- name: Display certificate status
+  debug:
+    msg: "Certificate will expire in less than 24 hours or is already expired! Check certificate renewal."
+  when: (inventory_hostname in groups['xray_main'] or inventory_hostname in groups['xray_backup']) and cert_check.rc != 0
+
+- name: Display certificate validity
+  debug:
+    msg: "Certificate is valid for more than 24 hours"
+  when: (inventory_hostname in groups['xray_main'] or inventory_hostname in groups['xray_backup']) and cert_check.rc == 0

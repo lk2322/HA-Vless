@@ -1,0 +1,4 @@
+---
+# Include server validation tasks
+- name: Include server validation tasks
+  import_tasks: server.yml

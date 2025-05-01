@@ -1,0 +1,45 @@
+---
+- name: Set HAProxy server variable
+  set_fact:
+    haproxy_server: "{{ hostvars[groups['haproxy'][0]]['ansible_host'] }}"
+  when: groups['haproxy'] is defined and groups['haproxy']|length > 0
+  
+- name: Check HAProxy connection
+  wait_for:
+    host: "{{ haproxy_server | default(domain_name) }}"
+    port: "{{ haproxy_port | default(443) }}"
+    timeout: 5
+  register: haproxy_connection
+  ignore_errors: yes
+  
+- name: Display HAProxy connectivity status
+  debug:
+    msg: "{{ 'HAProxy is accessible on port ' + (haproxy_port | default(443) | string) if haproxy_connection.state == 'started' else 'Failed to connect to HAProxy on port ' + (haproxy_port | default(443) | string) }}"
+  
+- name: Check HTTP proxy connectivity
+  wait_for:
+    host: "{{ haproxy_server | default(domain_name) }}"
+    port: "{{ haproxy_http_port | default(8080) }}"
+    timeout: 5
+  register: http_proxy_connection
+  ignore_errors: yes
+  when: xray_http_enabled | default(false)
+  
+- name: Display HTTP proxy connectivity status
+  debug:
+    msg: "{{ 'HTTP proxy is accessible on port ' + (haproxy_http_port | default(8080) | string) if http_proxy_connection.state == 'started' else 'Failed to connect to HTTP proxy on port ' + (haproxy_http_port | default(8080) | string) }}"
+  when: xray_http_enabled | default(false)
+  
+- name: Summary
+  vars:
+    msg: |
+      ===== Deployment Validation Summary =====
+      
+      HAProxy Status: {{ 'OK' if haproxy_connection.state == 'started' else 'FAILED' }}
+      {% if xray_http_enabled | default(false) %}
+      HTTP Proxy Status: {{ 'OK' if http_proxy_connection.state == 'started' else 'FAILED' }}
+      {% endif %}
+      
+      Configuration is complete and services are {{ 'running correctly' if haproxy_connection.state == 'started' else 'experiencing issues' }}.
+  debug:
+    msg: "{{ msg.split('\n') }}"
