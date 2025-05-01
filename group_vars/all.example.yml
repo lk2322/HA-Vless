@@ -20,6 +20,7 @@ haproxy_image: haproxy:latest
 haproxy_config_dir: /etc/haproxy
 haproxy_port: 443
 haproxy_http_port: 8080  # HAProxy port for HTTP proxy
+haproxy_stats_port: 8404  # HAProxy stats port for monitoring
 
 # Xray Configuration
 xray_container_name: xray
@@ -35,6 +36,26 @@ xray_http_enabled: true  # Set to false to disable HTTP proxy
 xray_http_port: 8080     # HTTP proxy port
 xray_http_user: "username"
 xray_http_pass: "password"
+
+# Monitoring Configuration
+monitoring_enabled: true  # Set to false to disable monitoring
+prometheus_container_name: prometheus
+prometheus_image: prom/prometheus:latest
+prometheus_config_dir: /etc/prometheus
+prometheus_data_dir: /var/lib/prometheus
+prometheus_port: 9090
+
+grafana_container_name: grafana
+grafana_image: grafana/grafana:latest
+grafana_config_dir: /etc/grafana
+grafana_data_dir: /var/lib/grafana
+grafana_provisioning_dir: /etc/grafana/provisioning
+grafana_port: 3000
+grafana_admin_password: admin  # Change this to a secure password
+
+exporter_config_dir: /etc/exporters
+node_exporter_image: prom/node-exporter:latest
+haproxy_exporter_image: prom/haproxy-exporter:latest
 
 # Xray Client Configuration - Add your clients here
 xray_clients:

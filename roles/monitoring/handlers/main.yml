@@ -1,0 +1,33 @@
+---
+- name: Restart Prometheus
+  community.docker.docker_compose_v2:
+    project_src: "{{ prometheus_config_dir }}"
+    state: restarted
+    services:
+      - prometheus
+
+- name: Restart Grafana
+  community.docker.docker_compose_v2:
+    project_src: "{{ grafana_config_dir }}"
+    state: restarted
+    services:
+      - grafana
+
+- name: Restart Node Exporter
+  community.docker.docker_compose_v2:
+    project_src: "{{ exporter_config_dir }}"
+    files:
+      - node-exporter-compose.yml
+    state: restarted
+    services:
+      - node-exporter
+
+- name: Restart HAProxy Exporter
+  community.docker.docker_compose_v2:
+    project_src: "{{ exporter_config_dir }}"
+    files:
+      - haproxy-exporter-compose.yml
+    state: restarted
+    services:
+      - haproxy-exporter
+  when: inventory_hostname in groups['haproxy']

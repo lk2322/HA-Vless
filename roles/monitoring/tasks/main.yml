@@ -1,0 +1,13 @@
+---
+# Set up monitoring with Prometheus and Grafana
+- name: Include Prometheus tasks
+  import_tasks: prometheus.yml
+  when: monitoring_enabled | default(true)
+
+- name: Include Grafana tasks
+  import_tasks: grafana.yml
+  when: monitoring_enabled | default(true)
+
+- name: Include exporter tasks
+  import_tasks: exporters.yml
+  when: monitoring_enabled | default(true)

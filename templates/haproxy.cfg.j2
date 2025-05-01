@@ -17,6 +17,18 @@ defaults
     # Enable health checks
     option tcp-check
 
+# Stats page for monitoring
+{% if monitoring_enabled | default(true) %}
+listen stats
+    bind *:{{ haproxy_stats_port | default(8404) }}
+    mode http
+    stats enable
+    stats uri /haproxy
+    stats realm HAProxy\ Statistics
+    stats auth admin:admin
+    stats refresh 10s
+{% endif %}
+
 # VLESS over TLS frontend
 frontend ft_xray
     bind *:443

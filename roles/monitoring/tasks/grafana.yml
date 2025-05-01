@@ -1,0 +1,50 @@
+---
+
+- name: Create Grafana directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  with_items:
+    - "{{ grafana_config_dir }}"
+    - "{{ grafana_data_dir }}"
+    - "{{ grafana_provisioning_dir }}/dashboards"
+    - "{{ grafana_provisioning_dir }}/datasources"
+
+- name: Copy Grafana Docker Compose file
+  template:
+    src: compose/grafana-compose.yml.j2
+    dest: "{{ grafana_config_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Copy Grafana datasources provisioning
+  template:
+    src: grafana-datasources.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/datasources/datasources.yml"
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Copy Grafana dashboards provisioning
+  template:
+    src: grafana-dashboards.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/dashboards/dashboards.yml"
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Copy Grafana dashboards
+  copy:
+    src: "dashboards/{{ item }}"
+    dest: "{{ grafana_provisioning_dir }}/dashboards/"
+    mode: '0644'
+  with_items:
+    - haproxy-dashboard.json
+    - xray-dashboard.json
+    - system-dashboard.json
+  notify: Restart Grafana
+
+- name: Deploy Grafana with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ grafana_config_dir }}"
+    state: present
+  register: output

@@ -117,6 +117,51 @@ To configure the HTTP proxy:
 
 3. Configure your clients to use the HTTP proxy with your server address, port, username, and password.
 
+## Monitoring
+
+HA-vless includes a comprehensive monitoring solution using Prometheus and Grafana. This allows you to monitor the health and performance of your HAProxy load balancer, Xray servers, and system metrics.
+
+### Features
+
+- **Prometheus** for metrics collection and storage
+- **Grafana** for metrics visualization with pre-configured dashboards
+- **Node Exporter** for system metrics (CPU, memory, disk, network)
+- **HAProxy Exporter** for detailed HAProxy statistics
+
+### Dashboards
+
+The monitoring setup includes three pre-configured Grafana dashboards:
+
+1. **HAProxy Overview**: Monitor connection counts, backend status, and proxy performance
+2. **System Metrics**: Track CPU, memory, disk usage, and network traffic across all servers
+3. **Xray Metrics**: Visualize Xray active connections and traffic throughput
+
+### Configuration
+
+To enable or customize the monitoring stack:
+
+1. In `group_vars/all.yml`, configure the monitoring settings:
+   ```yaml
+   # Monitoring Configuration
+   monitoring_enabled: true  # Set to false to disable monitoring
+   prometheus_port: 9090     # Prometheus web interface port
+   grafana_port: 3000        # Grafana web interface port
+   grafana_admin_password: admin  # Change this to a secure password
+   haproxy_stats_port: 8404  # HAProxy statistics port
+   ```
+
+2. Access the monitoring interfaces:
+   - Grafana: `http://<haproxy-server>:3000` (login with admin/your_password)
+   - Prometheus: `http://<haproxy-server>:9090`
+   - HAProxy Stats: `http://<haproxy-server>:8404/haproxy` (login with admin/admin)
+
+### Security Note
+
+The monitoring endpoints are exposed on their respective ports. For production use, consider:
+- Changing default passwords
+- Setting up a reverse proxy with authentication
+- Using firewall rules to restrict access to trusted IPs
+
 ## Server Architecture
 
 ```

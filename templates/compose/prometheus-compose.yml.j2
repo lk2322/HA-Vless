@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    ports:
+      - "{{ prometheus_port }}:9090"
+    volumes:
+      - {{ prometheus_config_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml
+      - {{ prometheus_data_dir }}:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    driver: bridge

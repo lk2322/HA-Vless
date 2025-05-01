@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'haproxy'
+    static_configs:
+      {% for host in groups['haproxy'] %}
+- targets: ['{{ hostvars[host]['ansible_host'] }}:9101']
+        labels:
+          instance: "{{ host }}"
+      {% endfor %}
+
+  - job_name: 'node'
+    static_configs:
+      {% for host in groups['all'] %}
+- targets: ['{{ hostvars[host]['ansible_host'] }}:9100']
+        labels:
+          instance: "{{ host }}"
+      {% endfor %}

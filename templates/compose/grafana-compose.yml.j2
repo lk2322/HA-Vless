@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "{{ grafana_port }}:3000"
+    volumes:
+      - {{ grafana_data_dir }}:/var/lib/grafana
+      - {{ grafana_provisioning_dir }}:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN={{ domain_name }}
+      - GF_SMTP_ENABLED=false
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    driver: bridge

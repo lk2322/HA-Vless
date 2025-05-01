@@ -23,6 +23,24 @@
     - common
     - xray
 
+# Setup monitoring (conditionally)
+- name: Deploy monitoring stack on HAProxy server
+  hosts: haproxy
+  become: true
+  roles:
+    - role: monitoring
+      tags: monitoring
+
+# Install exporters on all servers for metrics collection
+- name: Install monitoring exporters on all servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Include exporter tasks
+      include_tasks: roles/monitoring/tasks/exporters.yml
+      when: monitoring_enabled | default(true)
+      tags: monitoring
+
 - name: Validate deployment on servers
   hosts: all
   become: true

@@ -1,0 +1,29 @@
+---
+- name: Create Prometheus directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  with_items:
+    - "{{ prometheus_config_dir }}"
+    - "{{ prometheus_data_dir }}"
+
+- name: Copy Prometheus configuration file
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ prometheus_config_dir }}/prometheus.yml"
+    mode: '0644'
+  notify: Restart Prometheus
+
+- name: Copy Prometheus Docker Compose file
+  ansible.builtin.template:
+    src: compose/prometheus-compose.yml.j2
+    dest: "{{ prometheus_config_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: Restart Prometheus
+
+- name: Deploy Prometheus with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ prometheus_config_dir }}"
+    state: present
+  register: output
