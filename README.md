@@ -20,7 +20,7 @@ This Ansible playbook sets up a high-availability Xray proxy system using HAProx
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/HA-vless.git
+   git clone https://github.com/lk2322/HA-vless.git
    cd HA-vless
    ```
 
