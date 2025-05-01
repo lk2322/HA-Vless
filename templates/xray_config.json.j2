@@ -24,7 +24,22 @@
           ]
         }
       }
-    }
+    }{% if xray_http_enabled | default(false) %},
+    {
+      "port": {{ xray_http_port | default(8080) }},
+      "protocol": "http",
+      "settings": {
+        "accounts": [
+          {
+            "user": "{{ xray_http_user | default('username') }}",
+            "pass": "{{ xray_http_pass | default('password') }}"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp"
+      }
+    }{% endif %}
   ],
   "outbounds": [
     {

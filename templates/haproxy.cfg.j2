@@ -17,15 +17,26 @@ defaults
     # Enable health checks
     option tcp-check
 
+# VLESS over TLS frontend
 frontend ft_xray
     bind *:443
     mode tcp
     option tcplog
     default_backend bk_xray
 
+{% if xray_http_enabled | default(false) %}
+# HTTP proxy frontend
+frontend ft_http_proxy
+    bind *:{{ haproxy_http_port | default(8080) }}
+    mode tcp
+    option tcplog
+    default_backend bk_http_proxy
+{% endif %}
+
+# VLESS backend
 backend bk_xray
     mode tcp
-    # Use leastconn instead of roundrobin to better distribute connections
+    # Use source-based load balancing for better session persistence
     balance source
     hash-type consistent
     # Health check interval
@@ -40,3 +51,22 @@ backend bk_xray
     {% for host in groups['xray_backup'] %}
     server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check backup weight 50
     {% endfor %}
+
+{% if xray_http_enabled | default(false) %}
+# HTTP proxy backend
+backend bk_http_proxy
+    mode tcp
+    balance source
+    hash-type consistent
+    default-server inter 10s downinter 5s rise 2 fall 3
+    
+    # Main servers
+    {% for host in groups['xray_main'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_http_port | default(8080) }} check weight 100
+    {% endfor %}
+    
+    # Backup servers (with lower weight)
+    {% for host in groups['xray_backup'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_http_port | default(8080) }} check backup weight 50
+    {% endfor %}
+{% endif %}

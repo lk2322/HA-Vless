@@ -19,6 +19,7 @@ haproxy_container_name: haproxy
 haproxy_image: haproxy:latest
 haproxy_config_dir: /etc/haproxy
 haproxy_port: 443
+haproxy_http_port: 8080  # HAProxy port for HTTP proxy
 
 # Xray Configuration
 xray_container_name: xray
@@ -27,6 +28,13 @@ xray_config_dir: /etc/xray
 xray_cert_dir: /etc/xray/certs
 xray_port: 443
 xray_path: "/xray"
+xray_lego_dir: /etc/lego
+
+# HTTP Proxy Configuration
+xray_http_enabled: true  # Set to false to disable HTTP proxy
+xray_http_port: 8080     # HTTP proxy port
+xray_http_user: "username"
+xray_http_pass: "password"
 
 # Xray Client Configuration - Add your clients here
 xray_clients:

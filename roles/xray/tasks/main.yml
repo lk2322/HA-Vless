@@ -17,9 +17,16 @@
     state: directory
     mode: '0755'
 
-- name: Download and install acme.sh
+- name: Download acme.sh script
+  get_url:
+    url: "https://get.acme.sh"
+    dest: "/root/get_acme.sh"
+    mode: '0755'
+
+- name: Install acme.sh
   shell: |
-    curl https://get.acme.sh | sh -s email={{ email }}
+    set -o pipefail
+    /bin/bash /root/get_acme.sh -s email={{ email }}
   args:
     creates: "/root/.acme.sh/acme.sh"
 
@@ -35,8 +42,9 @@
     /root/.acme.sh/acme.sh --issue -d {{ domain_name }} --dns {{ dns_provider }} --home /root/.acme.sh
   args:
     executable: /bin/bash
+    creates: "{{ xray_cert_dir }}/{{ domain_name }}.crt"
   register: acme_result
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Install certificate from acme.sh if successful
   shell: |
@@ -49,6 +57,7 @@
     chmod 600 {{ xray_cert_dir }}/*
   args:
     executable: /bin/bash
+    creates: "{{ xray_cert_dir }}/{{ domain_name }}.crt"
   when: acme_result.rc is defined and acme_result.rc == 0
   register: cert_install
 
@@ -59,12 +68,13 @@
   register: cert_file
 
 - name: Generate self-signed certificate if acme.sh failed
+  when: (acme_result.rc is defined and acme_result.rc != 0) or not cert_file.stat.exists
   block:
     - name: Install OpenSSL package
       apt:
         name: openssl
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Generate self-signed certificate
       shell: |
@@ -76,8 +86,8 @@
         chmod 600 {{ xray_cert_dir }}/*
       args:
         executable: /bin/bash
+        creates: "{{ xray_cert_dir }}/{{ domain_name }}.crt"
       notify: Restart Xray
-  when: (acme_result.rc is defined and acme_result.rc != 0) or not cert_file.stat.exists
 
 - name: Copy Xray configuration file
   template:

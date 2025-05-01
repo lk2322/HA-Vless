@@ -7,6 +7,9 @@ services:
     restart: always
     ports:
       - "{{ xray_port }}:{{ xray_port }}"
+{% if xray_http_enabled | default(false) %}
+      - "{{ xray_http_port | default(8080) }}:{{ xray_http_port | default(8080) }}"
+{% endif %}
     volumes:
       - {{ xray_config_dir }}/config.json:/etc/xray/config.json:ro
       - {{ xray_cert_dir }}:/etc/xray/certs:ro
