@@ -1,4 +1,4 @@
-# HA-vless: High-Availability Xray Proxy with HAProxy
+# HA-Vless: High-Availability Xray Proxy with HAProxy
 
 This Ansible playbook sets up a high-availability Xray proxy system using HAProxy for load balancing. The setup includes:
 
@@ -20,8 +20,8 @@ This Ansible playbook sets up a high-availability Xray proxy system using HAProx
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/lk2322/HA-vless.git
-   cd HA-vless
+   git clone https://github.com/lk2322/HA-Vless.git
+   cd HA-Vless
    ```
 
 2. Create your inventory file from the example:
