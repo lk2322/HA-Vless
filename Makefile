@@ -1,4 +1,4 @@
-.PHONY: install deploy update setup-dev check lint update-clients
+.PHONY: install deploy update setup-dev check lint update-clients show-urls
 
 # Install required roles and collections
 install:
@@ -11,6 +11,10 @@ deploy:
 # Update only the Xray configuration
 update-clients:
 	ansible-playbook -i inventory.yml update-xray-config.yml
+
+# Show connection URLs for all clients
+show-urls:
+	ansible-playbook -i inventory.yml show-client-urls.yml
 
 # Setup development environment
 setup-dev:
@@ -37,5 +41,6 @@ help:
 	@echo "  make setup-dev       - Setup development environment by copying example files"
 	@echo "  make deploy          - Deploy the full setup"
 	@echo "  make update-clients  - Update only Xray client configurations"
+	@echo "  make show-urls       - Generate and display client connection URLs"
 	@echo "  make check           - Check playbook syntax"
 	@echo "  make lint            - Run ansible-lint if installed"

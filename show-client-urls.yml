@@ -1,0 +1,93 @@
+---
+- name: Generate Connection URLs for Xray Clients
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+  tasks:
+    - name: Set HAProxy server variable
+      set_fact:
+        haproxy_server: "{{ hostvars[groups['haproxy'][0]]['ansible_host'] }}"
+      when: groups['haproxy'] is defined and groups['haproxy']|length > 0
+
+    - name: Create client_configs directory
+      file:
+        path: ./client_configs
+        state: directory
+        mode: '0755'
+
+    - name: Create individual client config files
+      copy:
+        dest: "./client_configs/{{ item.email | regex_replace('[^a-zA-Z0-9_-]', '_') }}.txt"
+        content: |
+          ===== Client Configuration for {{ item.email }} =====
+          
+          Client: {{ item.email }}
+          UUID: {{ item.id }}
+          
+          VLESS URL:
+          vless://{{ item.id }}@{{ haproxy_server | default(domain_name) }}:{{ haproxy_port | default(443) }}?encryption=none&security=tls&sni={{ domain_name }}&alpn=h2,http/1.1&flow={{ item.flow | default('') }}&type=tcp&headerType=none&allowInsecure=1#{{ item.email }}
+          
+          {% if xray_http_enabled | default(false) %}
+          HTTP Proxy Settings:
+          Server: {{ haproxy_server | default(domain_name) }}
+          Port: {{ haproxy_http_port | default(8080) }}
+          Username: {{ xray_http_user | default('username') }}
+          Password: {{ xray_http_pass | default('password') }}
+          {% endif %}
+        mode: '0644'
+      loop: "{{ xray_clients }}"
+      
+    - name: Create consolidated client list file
+      copy:
+        dest: "./client_configs/all_clients.txt"
+        content: |
+          ===== VLESS Connection URLs for All Clients =====
+          
+          {% for client in xray_clients %}
+          Client: {{ client.email }}
+          UUID: {{ client.id }}
+          vless://{{ client.id }}@{{ haproxy_server | default(domain_name) }}:{{ haproxy_port | default(443) }}?encryption=none&security=tls&sni={{ domain_name }}&alpn=h2,http/1.1&flow={{ client.flow | default('') }}&type=tcp&headerType=none#{{ client.email }}
+          
+          {% endfor %}
+          {% if xray_http_enabled | default(false) %}
+          ===== HTTP Proxy Connection Info =====
+          
+          Server: {{ haproxy_server | default(domain_name) }}
+          Port: {{ haproxy_http_port | default(8080) }}
+          Username: {{ xray_http_user | default('username') }}
+          Password: {{ xray_http_pass | default('password') }}
+          {% endif %}
+        mode: '0644'
+
+    - name: Display file locations
+      debug:
+        msg: |
+          Client configuration files have been created:
+          - All clients: ./client_configs/all_clients.txt
+          - Individual clients: ./client_configs/<client_email>.txt
+
+    - name: Generate QR Codes for VLESS URLs (requires qrencode)
+      shell: |
+        set -e
+        mkdir -p ./client_qrcodes
+        {% for client in xray_clients %}
+        echo "vless://{{ client.id }}@{{ haproxy_server | default(domain_name) }}:{{ haproxy_port | default(443) }}?encryption=none&security=tls&sni={{ domain_name }}&alpn=h2,http/1.1&flow={{ client.flow | default('') }}&type=tcp&headerType=none#{{ client.email }}" | qrencode -o "./client_qrcodes/{{ client.email | regex_replace('[^a-zA-Z0-9_-]', '_') }}.png" -s 8
+        {% endfor %}
+      args:
+        executable: /bin/bash
+      register: qr_result
+      ignore_errors: true
+      changed_when: false
+
+    - name: Show QR Code Generation Status
+      debug:
+        msg: |
+          {% if qr_result.rc == 0 %}
+          QR codes successfully generated in ./client_qrcodes/ directory
+          {% else %}
+          QR code generation failed. Make sure 'qrencode' is installed on your system.
+          To install on macOS: brew install qrencode
+          To install on Ubuntu/Debian: apt-get install qrencode
+          {% endif %}
+      when: qr_result is defined

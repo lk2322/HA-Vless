@@ -60,6 +60,34 @@ To update only Xray configurations (e.g., add/remove clients):
    ansible-playbook -i inventory.yml update-xray-config.yml
    ```
 
+## Generate Client Connection Information
+
+To generate connection URLs, configuration files, and QR codes for all clients:
+
+```bash
+# Using the playbook directly
+ansible-playbook -i inventory.yml show-client-urls.yml
+
+# Or using the Makefile
+make show-urls
+```
+
+This will create:
+
+1. **Individual client configuration files** in the `client_configs/` directory
+   - One file per client named after their email address
+   - Each file contains the client's UUID and formatted VLESS URL
+   - HTTP proxy information is included if enabled
+
+2. **Consolidated configuration file** at `client_configs/all_clients.txt`
+   - Contains connection information for all clients in one file
+   - Includes HTTP proxy details if enabled
+
+3. **QR codes** in the `client_qrcodes/` directory
+   - One QR code image per client named after their email address
+   - Can be scanned directly with mobile apps like v2rayNG or Shadowrocket
+   - Requires `qrencode` to be installed on your system
+
 ## Proxy Features
 
 ### VLESS Protocol

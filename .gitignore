@@ -9,6 +9,8 @@ inventory.yml
 
 # Variable files with real credentials
 /group_vars/all.yml
+client_configs
+client_qrcodes
 
 # Operating system files
 .DS_Store
