@@ -1,0 +1,17 @@
+# DNS environment variables for Lego
+{% if dns_provider == 'cloudflare' %}
+export CLOUDFLARE_API_TOKEN={{ dns_api_token }}
+{% elif dns_provider == 'digitalocean' %}
+export DO_AUTH_TOKEN={{ dns_api_token }}
+{% elif dns_provider == 'route53' %}
+export AWS_ACCESS_KEY_ID={{ aws_access_key_id }}
+export AWS_SECRET_ACCESS_KEY={{ aws_secret_access_key }}
+{% elif dns_provider == 'duckdns' %}
+export DUCKDNS_TOKEN={{ dns_api_token }}
+{% elif dns_provider == 'timewebcloud' %}
+export TW_Token={{ dns_api_token }}
+{% else %}
+# Add your DNS provider environment variables here
+export {{ dns_provider|upper }}_AUTH_TOKEN={{ dns_api_token }}
+{% endif %}
+ACCOUNT_EMAIL={{ email }}

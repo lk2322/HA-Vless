@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  haproxy:
+    image: {{ haproxy_image }}
+    container_name: {{ haproxy_container_name }}
+    restart: always
+    ports:
+      - "{{ haproxy_port }}:443"
+    volumes:
+      - {{ haproxy_config_dir }}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    external: true

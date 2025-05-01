@@ -1,0 +1,42 @@
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode tcp
+    option tcplog
+    option dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+    
+    # Enable health checks
+    option tcp-check
+
+frontend ft_xray
+    bind *:443
+    mode tcp
+    option tcplog
+    default_backend bk_xray
+
+backend bk_xray
+    mode tcp
+    # Use leastconn instead of roundrobin to better distribute connections
+    balance source
+    hash-type consistent
+    # Health check interval
+    default-server inter 10s downinter 5s rise 2 fall 3
+    
+    # Main servers
+    {% for host in groups['xray_main'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check weight 100
+    {% endfor %}
+    
+    # Backup servers (with lower weight)
+    {% for host in groups['xray_backup'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check backup weight 50
+    {% endfor %}

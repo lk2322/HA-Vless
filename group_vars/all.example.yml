@@ -1,0 +1,39 @@
+---
+# Docker configuration (for geerlingguy.docker role)
+docker_add_repo: true
+docker_install_compose: true
+docker_compose_version: "v2.32.1"
+docker_users:
+  - "{{ ansible_user }}"
+
+# Domain configuration
+domain_name: example.com
+email: admin@example.com
+
+# DNS provider for acme.sh (Change to your DNS provider)
+dns_provider: cloudflare
+dns_api_token: your_dns_api_token_here
+
+# HAProxy Configuration
+haproxy_container_name: haproxy
+haproxy_image: haproxy:latest
+haproxy_config_dir: /etc/haproxy
+haproxy_port: 443
+
+# Xray Configuration
+xray_container_name: xray
+xray_image: teddysun/xray:latest
+xray_config_dir: /etc/xray
+xray_cert_dir: /etc/xray/certs
+xray_port: 443
+xray_path: "/xray"
+
+# Xray Client Configuration - Add your clients here
+xray_clients:
+  - id: "11111111-1111-1111-1111-111111111111"
+    email: "client1@example.com"
+    flow: "xtls-rprx-vision"
+  - id: "22222222-2222-2222-2222-222222222222"
+    email: "client2@example.com"
+    flow: "xtls-rprx-vision"
+  # Add more clients as needed

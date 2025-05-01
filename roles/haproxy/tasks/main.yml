@@ -1,0 +1,32 @@
+---
+- name: Create HAProxy configuration directory
+  file:
+    path: "{{ haproxy_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy HAProxy configuration
+  template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_config_dir }}/haproxy.cfg"
+    mode: '0644'
+  notify: Restart HAProxy
+
+
+- name: Create Docker Compose directory
+  file:
+    path: "{{ haproxy_config_dir }}/compose"
+    state: directory
+    mode: '0755'
+
+- name: Copy Docker Compose file for HAProxy
+  template:
+    src: compose/haproxy-compose.yml.j2
+    dest: "{{ haproxy_config_dir }}/compose/docker-compose.yml"
+    mode: '0644'
+
+- name: Deploy HAProxy with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ haproxy_config_dir }}/compose"
+    state: present
+  register: output

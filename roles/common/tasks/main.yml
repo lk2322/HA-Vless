@@ -1,0 +1,22 @@
+---
+- name: Install required packages
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - python3-pip
+      - unzip
+      - cron
+    state: present
+    update_cache: true
+
+- name: Install Docker Python package
+  pip:
+    name: docker
+    state: present
+    break_system_packages: true
+
+- name: Create Docker network
+  docker_network:
+    name: proxy_network
+    state: present

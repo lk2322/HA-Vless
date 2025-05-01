@@ -1,0 +1,122 @@
+---
+- name: Create Xray configuration directory
+  file:
+    path: "{{ xray_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create Xray certificates directory
+  file:
+    path: "{{ xray_cert_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create acme.sh directory
+  file:
+    path: "/root/.acme.sh"
+    state: directory
+    mode: '0755'
+
+- name: Download and install acme.sh
+  shell: |
+    curl https://get.acme.sh | sh -s email={{ email }}
+  args:
+    creates: "/root/.acme.sh/acme.sh"
+
+- name: Set DNS API environment variables
+  template:
+    src: dns_env.j2
+    dest: "/root/.acme.sh/account.conf"
+    mode: '0600'
+
+- name: Issue certificate with acme.sh using DNS challenge
+  shell: |
+    export PATH="/root/.acme.sh:$PATH"
+    /root/.acme.sh/acme.sh --issue -d {{ domain_name }} --dns {{ dns_provider }} --home /root/.acme.sh
+  args:
+    executable: /bin/bash
+  register: acme_result
+  ignore_errors: yes
+
+- name: Install certificate from acme.sh if successful
+  shell: |
+    export PATH="/root/.acme.sh:$PATH"
+    mkdir -p {{ xray_cert_dir }}
+    /root/.acme.sh/acme.sh --install-cert -d {{ domain_name }} \
+      --key-file {{ xray_cert_dir }}/{{ domain_name }}.key \
+      --fullchain-file {{ xray_cert_dir }}/{{ domain_name }}.crt \
+      --home /root/.acme.sh
+    chmod 600 {{ xray_cert_dir }}/*
+  args:
+    executable: /bin/bash
+  when: acme_result.rc is defined and acme_result.rc == 0
+  register: cert_install
+
+# Generate self-signed certificate if acme.sh failed
+- name: Check if certificate exists
+  stat:
+    path: "{{ xray_cert_dir }}/{{ domain_name }}.crt"
+  register: cert_file
+
+- name: Generate self-signed certificate if acme.sh failed
+  block:
+    - name: Install OpenSSL package
+      apt:
+        name: openssl
+        state: present
+        update_cache: yes
+
+    - name: Generate self-signed certificate
+      shell: |
+        openssl req -x509 -newkey rsa:4096 -sha256 -days 365 \
+          -nodes -keyout {{ xray_cert_dir }}/{{ domain_name }}.key \
+          -out {{ xray_cert_dir }}/{{ domain_name }}.crt \
+          -subj "/CN={{ domain_name }}" \
+          -addext "subjectAltName=DNS:{{ domain_name }}"
+        chmod 600 {{ xray_cert_dir }}/*
+      args:
+        executable: /bin/bash
+      notify: Restart Xray
+  when: (acme_result.rc is defined and acme_result.rc != 0) or not cert_file.stat.exists
+
+- name: Copy Xray configuration file
+  template:
+    src: xray_config.json.j2
+    dest: "{{ xray_config_dir }}/config.json"
+    mode: '0644'
+  notify: Restart Xray
+
+- name: Create Docker Compose directory
+  file:
+    path: "{{ xray_config_dir }}/compose"
+    state: directory
+    mode: '0755'
+
+- name: Copy Docker Compose file for Xray
+  template:
+    src: compose/xray-compose.yml.j2
+    dest: "{{ xray_config_dir }}/compose/docker-compose.yml"
+    mode: '0644'
+  notify: Restart Xray
+
+- name: Deploy Xray with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ xray_config_dir }}/compose"
+    state: present
+  register: output
+
+# acme.sh automatically creates a cron job for certificate renewal
+# We just need to add a hook to restart Xray after renewal
+# Configure certificate renewal hook only if acme.sh was successful
+- name: Configure certificate renewal hook
+  shell: |
+    export PATH="/root/.acme.sh:$PATH"
+    /root/.acme.sh/acme.sh --install-cert -d {{ domain_name }} \
+      --key-file {{ xray_cert_dir }}/{{ domain_name }}.key \
+      --fullchain-file {{ xray_cert_dir }}/{{ domain_name }}.crt \
+      --reloadcmd "cd {{ xray_config_dir }}/compose && docker compose restart" \
+      --home /root/.acme.sh
+  args:
+    executable: /bin/bash
+    creates: "{{ xray_cert_dir }}/{{ domain_name }}.crt"
+  when: acme_result.rc is defined and acme_result.rc == 0

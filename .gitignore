@@ -1,0 +1,37 @@
+# Ansible runtime files
+*.retry
+.ansible/
+*.log
+ansible.log
+
+# Inventory with real server information
+inventory.yml
+
+# Variable files with real credentials
+/group_vars/all.yml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+.vscode/
+.idea/
+*.sublime-*
+
+# Python virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# Backup files
+*~
+*.bak

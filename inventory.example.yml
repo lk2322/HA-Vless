@@ -1,0 +1,29 @@
+---
+all:
+  children:
+    haproxy:
+      hosts:
+        haproxy-server:
+          ansible_host: 192.168.1.10
+          ansible_user: admin
+          ansible_port: 22
+          # ansible_become_pass: your_sudo_password  # Consider using ansible-vault for passwords
+    xray:
+      children:
+        xray_main:
+          hosts:
+            xray-main-01:
+              ansible_host: 192.168.1.11
+            xray-main-02:
+              ansible_host: 192.168.1.12
+            xray-main-03:
+              ansible_host: 192.168.1.13  # Add more main servers as needed
+        xray_backup:
+          hosts:
+            xray-backup-01:
+              ansible_host: 192.168.1.21
+            xray-backup-02:
+              ansible_host: 192.168.1.22  # Add more backup servers as needed
+  vars:
+    ansible_user: root  # Default user for all hosts
+    ansible_python_interpreter: /usr/bin/python3

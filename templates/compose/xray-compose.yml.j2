@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  xray:
+    image: {{ xray_image }}
+    container_name: {{ xray_container_name }}
+    restart: always
+    ports:
+      - "{{ xray_port }}:{{ xray_port }}"
+    volumes:
+      - {{ xray_config_dir }}/config.json:/etc/xray/config.json:ro
+      - {{ xray_cert_dir }}:/etc/xray/certs:ro
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    external: true

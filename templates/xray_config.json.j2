@@ -1,0 +1,35 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": {{ xray_port }},
+      "protocol": "vless",
+      "settings": {
+        "clients": {{ xray_clients | to_json }},
+        "decryption": "none",
+        "fallbacks": []
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "tls",
+        "tlsSettings": {
+          "alpn": ["h3", "h2", "http/1.1"],
+          "certificates": [
+            {
+              "certificateFile": "/etc/xray/certs/{{ domain_name }}.crt",
+              "keyFile": "/etc/xray/certs/{{ domain_name }}.key"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
+}

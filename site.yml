@@ -1,0 +1,24 @@
+---
+- name: Configure HAProxy server
+  hosts: haproxy
+  become: true
+  roles:
+    - geerlingguy.docker
+    - common
+    - haproxy
+
+- name: Configure Xray main servers
+  hosts: xray_main
+  become: true
+  roles:
+    - geerlingguy.docker
+    - common
+    - xray
+
+- name: Configure Xray backup servers
+  hosts: xray_backup
+  become: true
+  roles:
+    - geerlingguy.docker
+    - common
+    - xray

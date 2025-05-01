@@ -1,0 +1,19 @@
+---
+- name: Update Xray Configuration
+  hosts: xray_main:xray_backup
+  become: true
+  tasks:
+    - name: Copy Xray configuration file
+      template:
+        src: xray_config.json.j2
+        dest: "{{ xray_config_dir }}/config.json"
+        mode: '0644'
+      register: config_updated
+
+    - name: Restart Xray if configuration was changed
+      community.docker.docker_compose_v2:
+        project_src: "{{ xray_config_dir }}/compose"
+        restart: true
+        services:
+          - xray
+      when: config_updated.changed
