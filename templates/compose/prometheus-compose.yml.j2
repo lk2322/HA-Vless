@@ -6,7 +6,7 @@ services:
     container_name: prometheus
     restart: always
     ports:
-      - "{{ prometheus_port }}:9090"
+      - "127.0.0.1:{{ prometheus_port }}:9090"
     volumes:
       - {{ prometheus_config_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml
       - {{ prometheus_data_dir }}:/prometheus
@@ -20,4 +20,4 @@ services:
 
 networks:
   proxy_network:
-    driver: bridge
+    external: true

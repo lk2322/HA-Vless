@@ -19,13 +19,12 @@ defaults
 
 # Stats page for monitoring
 {% if monitoring_enabled | default(true) %}
-listen stats
-    bind *:{{ haproxy_stats_port | default(8404) }}
+frontend stats
+    bind *:9101
     mode http
+    http-request use-service prometheus-exporter if { path /metrics }
     stats enable
-    stats uri /haproxy
-    stats realm HAProxy\ Statistics
-    stats auth admin:admin
+    stats uri /stats
     stats refresh 10s
 {% endif %}
 

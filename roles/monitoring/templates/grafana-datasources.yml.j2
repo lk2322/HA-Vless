@@ -4,6 +4,6 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://{{ hostvars[groups['haproxy'][0]]['ansible_host'] }}:{{ prometheus_port }}
+    url: http://prometheus:{{ prometheus_port }}
     isDefault: true
     editable: false

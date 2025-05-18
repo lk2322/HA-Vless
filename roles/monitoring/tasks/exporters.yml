@@ -16,15 +16,6 @@
     dest: "{{ exporter_config_dir }}/node-exporter-compose.yml"
     mode: '0644'
 
-# HAProxy Exporter setup (only on HAProxy servers)
-- name: Copy HAProxy Exporter Docker Compose file
-  template:
-    src: compose/haproxy-exporter-compose.yml.j2
-    dest: "{{ exporter_config_dir }}/haproxy-exporter-compose.yml"
-    mode: '0644'
-  notify: Restart HAProxy Exporter
-  when: inventory_hostname in groups['haproxy']
-
 # Deploy exporters
 - name: Deploy Node Exporter with Docker Compose
   community.docker.docker_compose_v2:
@@ -33,12 +24,3 @@
       - node-exporter-compose.yml
     state: present
   register: node_exporter_output
-
-- name: Deploy HAProxy Exporter with Docker Compose
-  community.docker.docker_compose_v2:
-    project_src: "{{ exporter_config_dir }}"
-    files:
-      - haproxy-exporter-compose.yml
-    state: present
-  register: haproxy_exporter_output
-  when: inventory_hostname in groups['haproxy']

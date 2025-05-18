@@ -10,6 +10,9 @@ services:
 {% if xray_http_enabled | default(false) %}
       - "{{ haproxy_http_port | default(8080) }}:{{ haproxy_http_port | default(8080) }}"
 {% endif %}
+{% if monitoring_enabled %}
+      - "{{ haproxy_stats_port }}:{{ haproxy_stats_port }}"
+{% endif %}
     volumes:
       - {{ haproxy_config_dir }}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     networks:
