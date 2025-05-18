@@ -40,17 +40,17 @@ backend bk_xray
     balance source
     hash-type consistent
     # Health check interval
-    default-server inter 10s downinter 5s rise 2 fall 3
+    default-server inter 5s downinter 5s rise 2 fall 1
     
     # Main servers
-    {% for host in groups['xray_main'] %}
+{% for host in groups['xray_main'] %}
     server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check weight 100
-    {% endfor %}
+{% endfor %}
     
     # Backup servers (with lower weight)
-    {% for host in groups['xray_backup'] %}
+{% for host in groups['xray_backup'] %}
     server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check backup weight 50
-    {% endfor %}
+{% endfor %}
 
 {% if xray_http_enabled | default(false) %}
 # HTTP proxy backend

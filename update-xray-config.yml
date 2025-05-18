@@ -13,7 +13,6 @@
     - name: Restart Xray if configuration was changed
       community.docker.docker_compose_v2:
         project_src: "{{ xray_config_dir }}/compose"
-        restart: true
+        state: restarted
         services:
           - xray
-      when: config_updated.changed
