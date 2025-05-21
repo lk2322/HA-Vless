@@ -1,8 +1,38 @@
 {
+"stats": {},
+    "api": {
+        "tag": "api",
+        "services": [
+            "StatsService"
+        ]
+    },
+    "policy": {
+        "levels": {
+            "0": {
+                "statsUserUplink": true,
+                "statsUserDownlink": true
+            }
+        },
+        "system": {
+            "statsInboundUplink": true,
+            "statsInboundDownlink": true,
+            "statsOutboundUplink": true,
+            "statsOutboundDownlink": true
+        }
+    },
   "log": {
-    "loglevel": "warning"
+    "loglevel": "debug"
   },
   "inbounds": [
+          {
+            "tag": "api",
+            "listen": "0.0.0.0",
+            "port": 54321,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "address": "0.0.0.0"
+            }
+        },
     {
       "port": {{ xray_port }},
       "protocol": "vless",
@@ -46,5 +76,16 @@
       "protocol": "freedom",
       "settings": {}
     }
-  ]
+  ],
+  "routing": {
+        "rules": [
+            {
+                "inboundTag": [
+                    "api"
+                ],
+                "outboundTag": "api",
+                "type": "field"
+            }
+        ]
+    }
 }

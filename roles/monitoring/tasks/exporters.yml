@@ -24,3 +24,20 @@
       - node-exporter-compose.yml
     state: present
   register: node_exporter_output
+
+# Xray Exporter for Xray metrics
+- name: Copy Xray Exporter Docker Compose file
+  template:
+    src: compose/xray-exporter-compose.yml.j2
+    dest: "{{ exporter_config_dir }}/xray-exporter-compose.yml"
+    mode: '0644'
+  when: inventory_hostname in groups['xray_main'] or inventory_hostname in groups['xray_backup']
+
+- name: Deploy Xray Exporter with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ exporter_config_dir }}"
+    files:
+      - xray-exporter-compose.yml
+    state: present
+  when: inventory_hostname in groups['xray_main'] or inventory_hostname in groups['xray_backup']
+  register: xray_exporter_output

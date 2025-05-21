@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  xray-exporter:
+    image: wi1dcard/v2ray-exporter:master
+    container_name: xray-exporter
+    restart: always
+    ports:
+      - "9550:9550"
+    command:
+      - '--v2ray-endpoint=xray:54321'
+    networks:
+      - proxy_network
+
+networks:
+  proxy_network:
+    external: true

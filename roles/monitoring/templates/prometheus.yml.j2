@@ -32,3 +32,12 @@ scrape_configs:
         labels:
           instance: "{{ host }}"
       {% endfor %}
+      
+  - job_name: 'xray'
+    metrics_path: /scrape 
+    static_configs:
+      {% for host in groups['xray_main'] + groups['xray_backup'] %}
+- targets: ['{{ hostvars[host]['ansible_host'] }}:9550']
+        labels:
+          instance: "{{ host }}"
+      {% endfor %}

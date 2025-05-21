@@ -31,3 +31,13 @@
     services:
       - haproxy-exporter
   when: inventory_hostname in groups['haproxy']
+
+- name: Restart Xray Exporter
+  community.docker.docker_compose_v2:
+    project_src: "{{ exporter_config_dir }}"
+    files:
+      - xray-exporter-compose.yml
+    state: restarted
+    services:
+      - xray-exporter
+  when: inventory_hostname in groups['xray_main'] or inventory_hostname in groups['xray_backup']
