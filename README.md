@@ -9,6 +9,7 @@ This Ansible playbook sets up a high-availability Xray proxy system using HAProx
 - Docker Compose for all service deployments
 - Easy management of multiple clients
 - Support for both VLESS protocol and HTTP proxy
+- External connectivity check agent for reliable failover
 
 ## Prerequisites
 
@@ -161,6 +162,11 @@ The monitoring endpoints are exposed on their respective ports. For production u
 - Changing default passwords
 - Setting up a reverse proxy with authentication
 - Using firewall rules to restrict access to trusted IPs
+
+## Documentation
+
+- [Main README](README.md) - This file
+- [Agent Documentation](docs/agent.md) - External connectivity check agent details
 
 ## Server Architecture
 

@@ -1,0 +1,29 @@
+---
+- name: Check if agent service is running
+  ansible.builtin.systemd:
+    name: xray-agent
+    state: started
+  register: agent_status
+  ignore_errors: yes
+  when: xray_agent_enabled | default(true)
+
+- name: Show agent status
+  ansible.builtin.debug:
+    msg: "Xray connectivity agent is {{ agent_status.status.ActiveState }}"
+  when: xray_agent_enabled | default(true) and agent_status.status is defined
+
+- name: Check agent connectivity to test sites
+  ansible.builtin.uri:
+    url: "{{ item }}"
+    timeout: "{{ xray_agent_timeout | default(5) }}"
+    validate_certs: yes
+  loop: "{{ xray_agent_test_sites.split(',') }}"
+  register: connectivity_results
+  ignore_errors: yes
+  when: xray_agent_enabled | default(true)
+
+- name: Show connectivity test results
+  ansible.builtin.debug:
+    msg: "{{ item.url }} - Status: {{ item.status | default('Failed') }}"
+  loop: "{{ connectivity_results.results }}"
+  when: xray_agent_enabled | default(true) and connectivity_results.results is defined

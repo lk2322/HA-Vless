@@ -1,0 +1,62 @@
+---
+# Install agent dependencies and setup script
+- name: Install Python packages for agent
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+    state: present
+    update_cache: yes
+
+- name: Create agent directory
+  ansible.builtin.file:
+    path: "/opt/xray"
+    state: directory
+    mode: '0755'
+
+- name: Open agent port in firewall
+  ansible.builtin.ufw:
+    rule: allow
+    port: "{{ xray_agent_port | default(8192) }}"
+    proto: tcp
+  when: ansible_os_family == "Debian"
+  ignore_errors: true
+
+- name: Create agent environment file
+  ansible.builtin.template:
+    src: xray-agent-env.j2
+    dest: /etc/xray/xray-agent.env
+    mode: '0644'
+
+- name: Copy agent script to server
+  ansible.builtin.copy:
+    src: xray_agent_check.py
+    dest: /opt/xray/xray_agent_check.py
+    mode: '0755'
+
+- name: Copy agent systemd service file
+  ansible.builtin.copy:
+    src: xray-agent.service
+    dest: /etc/systemd/system/xray-agent.service
+    mode: '0644'
+
+- name: Create log directory for agent
+  ansible.builtin.file:
+    path: "/var/log"
+    state: directory
+    mode: '0755'
+    
+- name: Touch log file for agent
+  ansible.builtin.file:
+    path: "/var/log/xray_agent_check.log"
+    state: touch
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Enable and start agent service
+  ansible.builtin.systemd:
+    name: xray-agent
+    state: restarted
+    enabled: true
+    daemon_reload: true

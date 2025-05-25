@@ -31,6 +31,13 @@ xray_port: 443
 xray_path: "/xray"
 xray_lego_dir: /etc/lego
 
+# Xray Agent Configuration
+xray_agent_enabled: true                # Set to false to disable agent-based health checks
+xray_agent_port: 8192                   # Port for agent health checks
+xray_agent_timeout: 5                   # Timeout for external connectivity checks (seconds)
+xray_agent_success_threshold: 3         # Number of successful checks needed to mark server as up
+xray_agent_test_sites: "https://www.google.com,https://www.cloudflare.com,https://www.github.com"  # Sites to test connectivity
+
 # HTTP Proxy Configuration
 xray_http_enabled: true  # Set to false to disable HTTP proxy
 xray_http_port: 8080     # HTTP proxy port

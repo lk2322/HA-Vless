@@ -12,9 +12,10 @@
 
 - name: Install Docker Python package
   pip:
-    name: docker
+    name: ["docker", "requests"]
     state: present
     break_system_packages: true
+
 
 - name: Create Docker network
   docker_network:

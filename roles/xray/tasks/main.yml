@@ -11,6 +11,12 @@
     state: directory
     mode: '0755'
 
+- name: Create Xray agent directory
+  file:
+    path: "/opt/xray"
+    state: directory
+    mode: '0755'
+
 - name: Create acme.sh directory
   file:
     path: "/root/.acme.sh"
@@ -130,3 +136,8 @@
     executable: /bin/bash
     creates: "{{ xray_cert_dir }}/{{ domain_name }}.crt"
   when: acme_result.rc is defined and acme_result.rc == 0
+
+# Install and configure Xray Agent Check
+- name: Include agent setup tasks
+  ansible.builtin.include_tasks: agent.yml
+  when: xray_agent_enabled | default(true)

@@ -1,0 +1,17 @@
+[Unit]
+Description=Xray External Connectivity Check Agent
+After=network.target xray.service
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/xray/xray_agent_check.py
+Restart=always
+User=root
+Group=root
+EnvironmentFile=/etc/xray/xray-agent.env
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=xray-agent
+
+[Install]
+WantedBy=multi-user.target

@@ -55,12 +55,12 @@ backend bk_xray
     
     # Main servers
 {% for host in groups['xray_main'] %}
-    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check weight 100
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check agent-check agent-addr {{ hostvars[host]['ansible_host'] }} agent-port {{ xray_agent_port | default(8192) }} agent-inter 30s weight 100
 {% endfor %}
     
     # Backup servers (with lower weight)
 {% for host in groups['xray_backup'] %}
-    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check backup weight 50
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_port }} check agent-check agent-addr {{ hostvars[host]['ansible_host'] }} agent-port {{ xray_agent_port | default(8192) }} agent-inter 30s backup weight 50
 {% endfor %}
 
 {% if xray_http_enabled | default(false) %}
@@ -73,11 +73,11 @@ backend bk_http_proxy
     
     # Main servers
     {% for host in groups['xray_main'] %}
-    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_http_port | default(8080) }} check weight 100
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_http_port | default(8080) }} check agent-check agent-addr {{ hostvars[host]['ansible_host'] }} agent-port {{ xray_agent_port | default(8192) }} agent-inter 30s weight 100
     {% endfor %}
     
     # Backup servers (with lower weight)
     {% for host in groups['xray_backup'] %}
-    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_http_port | default(8080) }} check backup weight 50
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ xray_http_port | default(8080) }} check agent-check agent-addr {{ hostvars[host]['ansible_host'] }} agent-port {{ xray_agent_port | default(8192) }} agent-inter 30s backup weight 50
     {% endfor %}
 {% endif %}

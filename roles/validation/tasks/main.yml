@@ -2,3 +2,8 @@
 # Include server validation tasks
 - name: Include server validation tasks
   import_tasks: server.yml
+
+# Include agent validation tasks if enabled
+- name: Include agent validation tasks
+  import_tasks: agent.yml
+  when: xray_agent_enabled | default(true)
